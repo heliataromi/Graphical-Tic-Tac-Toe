@@ -3,13 +3,56 @@ import tkinter as tk
 
 
 class Player:
+    """This is a class for the players of the game.
+
+    ...
+
+    Attributes
+    ----------
+        marker : str
+            the game mark of each player
+        is_human : bool
+            whether the player is a human
+        colour: str
+            the colour of the player's mark in the game GUI
+
+    Methods
+    -------
+        get_computer_move(board: list, other_player)
+            Finds the best move for the computer using a simple AI
+    """
 
     def __init__(self, marker="X", is_human=True, colour='#8E44AD'):
+        """This method initializes the player with three attributes.
+
+        Parameters
+        ----------
+        marker : str
+            the game mark of each player
+        is_human : bool
+            whether the player is a human
+        colour: str
+            the colour of the player's mark in the game GUI
+        """
         self.marker = marker
         self.is_human = is_human
         self.colour = colour
 
     def get_computer_move(self, board: list, other_player):
+        """This method initializes the player with three attributes.
+
+        Parameters
+        ----------
+        board : list
+            the game board
+        other_player : Player
+            the object of the other player
+
+        Returns
+        -------
+        int
+            the index of the computer's choice on the board
+        """
         move = None
 
         # First situation: There exists a single move such that the computer can win the game.
@@ -19,7 +62,6 @@ class Player:
         # Second situation: There exists a single move for the player that will cause the computer to lose the game.
         if move is None:
             move = find_winning_move(other_player, board)
-            print(f'{move = }')
 
         # Third situation: At least one of the corner positions (positions 0, 2, 6, or 8) is free.
         if move is None:
@@ -44,9 +86,50 @@ class Player:
 
 
 class Board:
+    """This is a class for the players of the game.
+
+    ...
+
+    Attributes
+    ----------
+        players : list[Player]
+            a list of the players' objects
+        root : tk.TK
+            the GUI root
+
+    Methods
+    -------
+        create_board(root)
+            Creates the game GUI.
+        create_buttons(root)
+            Creates the buttons of the game.
+        make_move(position: int, player: Player)
+            Show the moves made by players.
+        is_position_valid(position: int)
+            Checks if the player has entered a valid position.
+        is_winner(player: Player)
+            Checks if the player has won the game.
+        is_tie()
+            Checks if the game has ended with a tie.
+        game_has_ended()
+            Checks if the game has ended.
+        pressed(position: int)
+            Change the game status according to the button pressed by the player.
+        """
+
+    # Indicate the game starter randomly
     turn = random.randint(0, 1)
 
     def __init__(self, players: list[Player], root):
+        """This method initializes the game board.
+
+        Parameters
+        ----------
+        players : list[Player]
+            a list of the players' objects
+        root : tk.TK
+            the GUI root
+        """
         self.game_board = [[0, 1, 2],
                            [3, 4, 5],
                            [6, 7, 8]]
@@ -63,6 +146,17 @@ class Board:
             self.gamestatus.config(text='Game has started.\nIt\'s your turn.')
 
     def create_board(self, root):
+        """This method creates the game GUI.
+
+        Parameters
+        ----------
+        root : tk.TK
+            the GUI root
+
+        Returns
+        -------
+        None
+        """
         root.configure(bg='white')
         self.buttons = self.create_buttons(root)
         self.gamestatus = tk.Label(master=self.root,
@@ -77,6 +171,18 @@ class Board:
         self.movestatus.grid(row=5, columnspan=3)
 
     def create_buttons(self, root):
+        """This method creates the game buttons.
+
+        Parameters
+        ----------
+        root : tk.TK
+            the GUI root
+
+        Returns
+        -------
+        list[th.Button]
+            a list of the buttons in the game
+        """
         buttons = list()
 
         for i in range(3):
@@ -93,22 +199,31 @@ class Board:
 
         return buttons
 
-    def print_board(self):
-        # print game_board
-        for row in self.game_board:
-            print('|'.join(map(str, row)))
-
     def make_move(self, position: int, player: Player):
+        """This method makes the move chosen by the player and changes the game status accordingly.
+
+        Parameters
+        ----------
+        position : int
+            the position chosen by the player
+        player : Player
+            the object of the player
+
+        Returns
+        -------
+        None
+        """
+        # Show computer's move to the human player
         if not player.is_human:
             self.movestatus.config(text=f'Computer\'s move is {position}.')
 
+        # Change the board position to the player's marker
         self.game_board[position // 3][position % 3] = player.marker
         self.buttons[position // 3][position % 3].config(text=player.marker,
                                                          fg=player.colour,
                                                          activeforeground=player.colour)
 
-        self.print_board()
-
+        # Check if the game has ended either by a player winning or by a tie
         if self.is_winner(self.players[0]):
             self.gamestatus.config(text='You won!', fg='#28B463')
             return
@@ -119,20 +234,40 @@ class Board:
             self.gamestatus.config(text='Game ended with a tie.', fg='#E67E22')
             return
 
+        # Change the turn
         if player == self.players[1]:
             Board.turn = 0
-            print('It\'s your turn.')
-
         elif player == self.players[0]:
             Board.turn = 1
-            print('It\'s computer\'s turn.')
 
     def is_position_valid(self, position: int):
-        # check the position is available
+        """Checks if the player has entered a valid position.
+
+        Parameters
+        ----------
+        position : int
+            the position chosen by the player
+
+        Returns
+        -------
+        bool
+            whether the position is valid
+        """
         return self.game_board[position // 3][position % 3] not in ('X', 'O') and 0 <= position <= 8
 
     def is_winner(self, player: Player):
-        # check if player is winning
+        """Checks if the player has won the game.
+
+        Parameters
+        ----------
+        player : Player
+            the object of the player
+
+        Returns
+        -------
+        bool
+            whether the player has won the game
+        """
         mark = player.marker
 
         # Horizontal states
@@ -160,38 +295,71 @@ class Board:
         return False
 
     def is_tie(self):
+        """Checks if the game has ended with a tie.
+
+        Returns
+        -------
+        bool
+            whether the game has ended with a tie
+        """
         return all([x in ('X', 'O') for row in self.game_board for x in row])
 
     def game_has_ended(self):
+        """Checks if the game has ended either with a player winning or with a tie.
+
+        Returns
+        -------
+        bool
+            whether the game has ended
+        """
+        # Check if each player has won
         for player in self.players:
             if self.is_winner(player):
                 return True
 
+        # Check if game has ended with a tie
         if self.is_tie():
             return True
 
+        # Game hasn't ended
         return False
 
     def pressed(self, position: int):
+        """Changes the game status according to the button pressed by the human player.
+
+        Parameters
+        ----------
+        position : int
+            the object of the player
+
+        Returns
+        -------
+        None
+        """
         if not self.game_has_ended():
             if self.is_position_valid(position):
+                # Make move for the human player
                 self.make_move(position, self.players[0])
 
                 if not self.game_has_ended():
                     if Board.turn == 1:
+                        # Announce the human player that it's their turn
                         self.gamestatus.config(text='It\'s computer\'s turn.')
+
+                        # Make move for the computer player
                         move = self.players[1].get_computer_move(self.game_board, self.players[0])
                         self.make_move(move, players[1])
 
                         if not self.game_has_ended():
+                            # Announce the human player that it's their turn
                             self.gamestatus.config(text='It\'s your turn.')
 
 
 def find_winning_move(player: Player, board: list[list]) -> int:
-    '''
+    """
     This function will find which move should a player make to win. It will help the computer
     decide how to win or how to prevent the player from winning.
-    '''
+    """
 
     mark = player.marker
     other_mark = ''
